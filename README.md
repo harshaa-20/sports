@@ -39,7 +39,11 @@ A full-stack local starter with a separate React + Vite frontend and Spring Boot
 5. Save `.env`, close Notepad, and the launcher starts the app. If you used the terminal instead, run `npm run install:all` then `npm run dev`.
 6. Open **http://localhost:5173**.
 
-The API runs at **http://localhost:4000**. The first backend startup creates the required tables and migrations in the `SPORTS` database. Events must be created by an authorized admin or sport coordinator.
+The API runs at **http://localhost:4000** locally. In hosted environments such as Render, the backend uses Render's `PORT` environment variable automatically. The first backend startup creates the required tables and migrations in the `SPORTS` database. Events must be created by an authorized admin or sport coordinator.
+
+For a separately hosted frontend, set `VITE_API_URL` to the deployed backend URL (for example, `https://your-backend.onrender.com/api`) and set the backend's `FRONTEND_URL` to the deployed frontend origin (for example, `https://your-frontend.onrender.com`).
+
+The Spring backend can be deployed on Render using the Docker runtime. Set the service root directory to `backend-spring`; Render will use the included `Dockerfile`.
 
 ### Run frontend and backend separately
 
