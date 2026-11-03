@@ -1,15 +1,23 @@
 # KLU Sports Management Portal
 
-A full-stack local starter with React + Vite, Express, PostgreSQL, bcrypt password hashing, JWT authentication, and role-based dashboards.
+A full-stack local starter with a separate React + Vite frontend and Spring Boot + PostgreSQL backend. It includes bcrypt password hashing, JWT authentication, and role-based dashboards.
+
+## Project structure
+
+- `frontend/` contains the React/Vite application and runs on `http://localhost:5173`.
+- `backend-spring/` contains the Spring Boot API and PostgreSQL schema initialization/migrations. It runs on `http://localhost:4000`.
+- The root scripts start the Spring backend and frontend together. The frontend proxies `/api` requests to the backend during development.
 
 ## Included
 
 - Student signup and login. Public signup always creates a `STUDENT` account.
+- Coordinator signup creates a `PENDING` request that an administrator must approve before coordinator access is enabled.
 - Separate Student, Sports Coordinator, and Admin dashboards, selected after login based on the user's database role.
 - Student event discovery, registration, personal registration list, attendance status, and published results.
-- Coordinator event creation/deletion, registration list, attendance marking, and result publishing.
+- Coordinator event creation/deletion, registration list, attendance marking, and result publishing, restricted to the coordinator's assigned sport.
 - Admin overview, event/registration oversight, account creation, and role management.
-- PostgreSQL schema creation and starter sports event seeding on first API startup.
+- PostgreSQL schema creation and backward-compatible migrations on API startup. No demo events are seeded.
+- Admin/coordinator registration entries can be downloaded as a PDF from the registration desk.
 - Protected API routes; admin/coordinator actions are enforced server-side, not only hidden in the UI.
 
 ## Requirements
@@ -23,15 +31,26 @@ A full-stack local starter with React + Vite, Express, PostgreSQL, bcrypt passwo
 1. Extract the ZIP to a normal folder.
 2. Open that `klu-sports-portal-full` folder in VS Code.
 3. Double-click `START-WINDOWS.bat` or open the VS Code terminal in that folder.
-4. If the `.env` file is created, it opens in Notepad. Update these values:
+4. If the root `.env` file is created, it opens in Notepad. Update these values:
    - `DATABASE_URL=postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/SPORTS`
    - Set `JWT_SECRET` to a long random private value.
    - Change `ADMIN_PASSWORD` to a strong private password.
    - You can change `ADMIN_EMAIL` and `ADMIN_NAME` too.
-5. Save `.env`, close Notepad, and the launcher starts the app. If you used the terminal instead, run `npm install` then `npm run dev`.
+5. Save `.env`, close Notepad, and the launcher starts the app. If you used the terminal instead, run `npm run install:all` then `npm run dev`.
 6. Open **http://localhost:5173**.
 
-The API runs at **http://localhost:4000**. The first API startup creates the required tables and seeds events into the `SPORTS` database.
+The API runs at **http://localhost:4000**. The first backend startup creates the required tables and migrations in the `SPORTS` database. Events must be created by an authorized admin or sport coordinator.
+
+### Run frontend and backend separately
+
+In two terminals from the project root:
+
+```text
+npm run server
+npm --prefix frontend run dev
+```
+
+You can also run `npm run dev` from the root.
 
 ### Database connection examples
 
@@ -51,6 +70,7 @@ The admin dashboard can create coordinator accounts. Students can create their o
 
 - `GET /api/health`
 - `POST /api/auth/signup` (student only)
+- `POST /api/auth/coordinator-signup` (creates a pending coordinator request)
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 - `GET /api/events`
@@ -61,10 +81,11 @@ The admin dashboard can create coordinator accounts. Students can create their o
 - `GET /api/results`, `POST /api/results` (posting requires admin/coordinator)
 - `GET /api/admin/summary` (admin/coordinator)
 - `GET /api/admin/users`, `POST /api/admin/users`, `PATCH /api/admin/users/:id/role` (admin only)
+- `GET /api/admin/coordinator-requests`, `PATCH /api/admin/coordinator-requests/:id/approve`, `PATCH /api/admin/coordinator-requests/:id/reject` (admin only)
 
 ## Important notes
 
-- Never share your `.env` file or commit it to GitHub. `.env` is ignored by `.gitignore`.
+- Never share your `.env` file or commit it to GitHub. Environment files are ignored by `.gitignore`.
 - This is a local project starter, not a production university deployment. Before public deployment, add HTTPS, stronger operational secret management, rate limiting, audit logs, backups, security review, and university-approved account verification.
 - JWTs are stored in browser local storage for this local starter. A production deployment should consider secure HttpOnly cookies and a full security review.
 - The seeded event dates and descriptions are sample data. Confirm them with the sports department before real use.

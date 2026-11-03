@@ -3,9 +3,9 @@ cd /d "%~dp0"
 echo ==============================================
 echo    KLU SPORTS MANAGEMENT PORTAL
 echo ==============================================
-if not exist node_modules (
-  echo Installing project dependencies...
-  call npm install
+if not exist frontend\node_modules (
+  echo Installing frontend dependencies...
+  call npm run install:all
   if errorlevel 1 goto error
 )
 if not exist .env (
@@ -14,7 +14,7 @@ if not exist .env (
   echo Please enter your PostgreSQL password and change the initial admin password.
   start /wait notepad .env
 )
-echo Starting API and frontend...
+echo Starting separate API and frontend processes...
 call npm run dev
 goto end
 :error
