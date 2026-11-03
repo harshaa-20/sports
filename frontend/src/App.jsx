@@ -3,7 +3,8 @@ import { Activity, ArrowRight, CalendarDays, ClipboardList, Trophy, Users, Shiel
 import { dashboards } from './dashboards/dashboardConfig'
 import Sidebar from './components/Sidebar'
 
-const API=(import.meta.env.VITE_API_URL||'/api').replace(/\/$/,'')
+const configuredApi=(import.meta.env.VITE_API_URL||'/api').replace(/\/+$/,'')
+const API=configuredApi==='/'||configuredApi===''?'/api':configuredApi.endsWith('/api')?configuredApi:`${configuredApi}/api`
 const sports=['Badminton','Cricket','Basketball','Football','Volleyball','Athletics']
 const roles={STUDENT:'Student',COORDINATOR:'Sports Coordinator',ADMIN:'Administrator'}
 async function request(path, options={}, token='') {
