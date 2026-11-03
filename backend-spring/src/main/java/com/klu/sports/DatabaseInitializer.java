@@ -12,6 +12,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
     @Value("${app.admin-name}") private String adminName;
     @Value("${app.admin-email}") private String adminEmail;
+    @Value("${app.admin-password-reset:false}") private boolean adminPasswordReset;
     @Value("${app.admin-password}") private String adminPassword;
 
     public DatabaseInitializer(JdbcTemplate db) { this.db = db; }
@@ -44,8 +45,14 @@ public class DatabaseInitializer implements CommandLineRunner {
         execute("DO $$ DECLARE column_record RECORD; BEGIN FOR column_record IN SELECT column_name FROM information_schema.columns WHERE table_name='coordinator_requests' AND column_name NOT IN ('id','user_id','requested_sport','status','admin_reviewer_id','reviewed_at','rejection_reason','created_at') LOOP EXECUTE format('ALTER TABLE coordinator_requests ALTER COLUMN %I DROP NOT NULL', column_record.column_name); END LOOP; END $$");
         execute("CREATE UNIQUE INDEX IF NOT EXISTS coordinator_requests_user_id_key ON coordinator_requests(user_id) WHERE user_id IS NOT NULL");
         if (adminEmail != null && !adminEmail.isBlank() && adminPassword != null && !adminPassword.isBlank()) {
-            Integer count = db.queryForObject("SELECT COUNT(*) FROM users WHERE email=?", Integer.class, adminEmail.toLowerCase().trim());
-            if (count != null && count == 0) db.update("INSERT INTO users(name,email,password_hash,role) VALUES(?,?,?,'ADMIN')", adminName, adminEmail.toLowerCase().trim(), encoder.encode(adminPassword));
+            String normalizedEmail = adminEmail.toLowerCase().trim();
+            Integer count = db.queryForObject("SELECT COUNT(*) FROM users WHERE email=?", Integer.class, normalizedEmail);
+            if (count != null && count == 0) {
+                db.update("INSERT INTO users(name,email,password_hash,role) VALUES(?,?,?,'ADMIN')", adminName, normalizedEmail, encoder.encode(adminPassword));
+            } else if (adminPasswordReset) {
+                db.update("UPDATE users SET password_hash=?, role='ADMIN', account_status='ACTIVE' WHERE email=? AND role='ADMIN'", encoder.encode(adminPassword), normalizedEmail);
+                System.out.println("Configured administrator password was reset.");
+            }
         }
         System.out.println("PostgreSQL schema is ready.");
     }
